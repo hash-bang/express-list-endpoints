@@ -1,11 +1,11 @@
 /**
  * Print in console all the verbs detected for the passed route
  */
-var getRouteMethods = function(route) {
+var getRouteMethods = function(route, settings) {
   var methods = [];
 
   for (var method in route.methods) {
-    if (method === '_all') {continue;}
+    if (method === '_all' && !settings.includeAll) continue;
 
     methods.push(method.toUpperCase());
   }
@@ -16,35 +16,41 @@ var getRouteMethods = function(route) {
 /**
  * Return an array of strings with all the detected endpoints
  */
-var getEndpoints = function(app, path, endpoints) {
+var getEndpoints = function(app, options) {
   var regExp = /^\/\^\\\/(?:([\w\\\.\-]*(?:\\\/[\w\\\.\-]*)*)|(\(\?:\(\[\^\\\/\]\+\?\)\)))\\\/.*/;
   var stack = app.stack || app._router && app._router.stack;
+  var settings = {
+    includeAll: false,
+    path: '',
+    endpoints: [],
+  };
 
-  endpoints = endpoints || [];
-  path = path || '';
+  if (options) { // Merge options into settings
+    for (var k in options) { settings[k] = options[k] };
+  }
 
   stack.forEach(function(val) {
     var newPath = regExp.exec(val.regexp);
 
     if (val.route) {
-      endpoints.push({
-        path: path + val.route.path,
-        methods: getRouteMethods(val.route)
+      settings.endpoints.push({
+        path: settings.path + val.route.path,
+        methods: getRouteMethods(val.route, settings)
       });
 
     } else if (val.name === 'router' || val.name === 'bound dispatch') {
       if (newPath) {
         var parsedPath = newPath[1].replace(/\\\//g, '/');
 
-        getEndpoints(val.handle, path + '/' + parsedPath, endpoints);
+        getEndpoints(val.handle, Object.assign({}, settings, {path: settings.path + '/' + parsedPath, endpoints: settings.endpoints}));
 
       } else {
-        getEndpoints(val.handle, path, endpoints);
+        getEndpoints(val.handle, Object.assign({}, settings, {path : settings.path, endpoints: settings.endpoints}));
       }
     }
   });
 
-  return endpoints;
+  return settings.endpoints;
 };
 
 module.exports = getEndpoints;

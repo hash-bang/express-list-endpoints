@@ -6,7 +6,7 @@ var expect = chai.expect;
 
 chai.should();
 
-function checkResults(endpoints) {
+function checkResults(endpoints, options) {
   describe('should retrieve an array', function() {
     endpoints.should.not.be.empty;
     endpoints.should.be.an('array');
@@ -51,8 +51,10 @@ function checkResults(endpoints) {
                 expect(method).to.be.equal(method.toUpperCase());
               });
 
-              it('excluding the _all ones', function() {
-                expect(method).to.not.be.equal('_ALL');
+              it('with a valid method', function() {
+                var validMethods = ['DELETE', 'GET', 'POST', 'PUT'];
+                if (options && options.includeAll) validMethods.push('_ALL');
+                expect(method).to.be.oneOf(validMethods);
               });
             });
           });
@@ -87,6 +89,9 @@ describe('express-list-endpoints', function() {
       });
 
     checkResults(listEndpoints(app));
+
+    var options = {includeAll: true};
+    checkResults(listEndpoints(app, options), options);
   });
 
   describe('when called over a router', function() {
@@ -112,6 +117,9 @@ describe('express-list-endpoints', function() {
       });
 
     checkResults(listEndpoints(router));
+
+    var options = {includeAll: true};
+    checkResults(listEndpoints(router, options), options);
   });
 
   describe('when called over an app with mounted routers', function() {
@@ -140,6 +148,9 @@ describe('express-list-endpoints', function() {
     app.use('/router', router);
 
     checkResults(listEndpoints(app));
+
+    var options = {includeAll: true};
+    checkResults(listEndpoints(app, options), options);
   });
 
   describe('when the defined routes', function() {
