@@ -29,7 +29,7 @@ app.route('/about')
   });
 
 console.log(listEndpoints(app));
-/* It omits the 'all' verbs.
+/* It omits the 'all' verbs (unless includeAll is spcified)
 [{
     path: '/',
     methods: ['GET', 'POST']
@@ -48,6 +48,16 @@ console.log(listEndpoints(app));
 Your router instance (`router`) or your app instance (`app`).
 
 _**Note:** Pay attention that before call this script the router or app must have the endpoints registered due to detect them._
+
+
+### Options
+
+You can also pass an options object as the second parameter which can contain any of the following:
+
+| Option       | Type    | Default | Description                                                                 |
+|--------------|---------|---------|-----------------------------------------------------------------------------|
+| `includeAll` | Boolean | `false` | Include '_ALL' method handlers in the output (by default these are omitted) |
+
 
 ## license
 
